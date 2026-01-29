@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>  
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -53,9 +53,9 @@
 
   .love-text {
     position: absolute;
-    top: 50%;
+    top: 15%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     text-align: center;
     z-index: 10;
     animation: fadeIn 2s ease-in-out forwards;
@@ -72,8 +72,8 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translate(-50%, -60%); }
-    to { opacity: 1; transform: translate(-50%, -50%); }
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
   }
 </style>
 </head>
@@ -113,8 +113,8 @@
   yesBtn.onclick = () => {
     questionBox.style.display = "none";
     canvas.style.display = "block";
-
-    // Add love message
+    document.body.style.background = "radial-gradient(circle, #ff9a9e, #fad0c4)";
+    
     const loveMessage = document.createElement("div");
     loveMessage.className = "love-text";
     loveMessage.innerHTML = `
@@ -123,40 +123,54 @@
     `;
     document.body.appendChild(loveMessage);
 
-    startHeartExplosion();
+    startBearAnimation();
   };
 
-  // -------------------------
-  // Heart Explosion Animation
-  // -------------------------
-  function startHeartExplosion() {
+  function startBearAnimation() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const particles = [];
+    const floatingHearts = [];
 
-    function randomColor() {
-      const colors = ["#FF4C4C", "#FF69B4", "#FF1493", "#FFB6C1"];
-      return colors[Math.floor(Math.random() * colors.length)];
+    function drawBear(x, y, scale, color, armOffset = 0) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+
+      ctx.fillStyle = color;
+
+      ctx.beginPath();
+      ctx.arc(0, 50, 35, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 40, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(-25, -30, 15, 0, Math.PI * 2);
+      ctx.arc(25, -30, 15, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(-45 + armOffset, 45, 18, 0, Math.PI * 2);
+      ctx.arc(45 - armOffset, 45, 18, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "black";
+      ctx.beginPath();
+      ctx.arc(-12, -5, 5, 0, Math.PI * 2);
+      ctx.arc(12, -5, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(0, 10, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
     }
 
-    function createParticle(x, y) {
-      return {
-        x: x,
-        y: y,
-        vx: (Math.random() - 0.5) * 8,
-        vy: (Math.random() - 0.5) * 8,
-        size: Math.random() * 4 + 2,
-        color: randomColor(),
-        life: 100
-      };
-    }
-
-    for (let i = 0; i < 200; i++) {
-      particles.push(createParticle(canvas.width/2, canvas.height/2));
-    }
-
-    function drawHeart(x, y, size, color) {
+    function drawHeart(x, y, size, color="#ff4d6d") {
       ctx.save();
       ctx.translate(x, y);
       ctx.scale(size / 15, size / 15);
@@ -167,39 +181,52 @@
       ctx.bezierCurveTo(-7, -7, -15, 5, 0, 15);
       ctx.bezierCurveTo(15, 5, 7, -7, 0, 0);
       ctx.fill();
+
       ctx.restore();
     }
 
+    function createFloatingHeart() {
+      return {
+        x: Math.random() * canvas.width,
+        y: canvas.height + 20,
+        size: Math.random() * 20 + 10,
+        speed: Math.random() * 2 + 1
+      };
+    }
+
+    let frame = 0;
+
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      frame += 0.05;
 
-      particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life -= 1;
-        p.vy += 0.05;
-        drawHeart(p.x, p.y, p.size, p.color);
-      });
+      const bounce = Math.sin(frame) * 8;
+      const hugMove = Math.sin(frame) * 5;
 
-      for (let i = particles.length - 1; i >= 0; i--) {
-        if (particles[i].life <= 0) {
-          particles.splice(i, 1);
-        }
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2 + 50;
+
+      drawBear(centerX - 60 + hugMove, centerY + bounce, 1, "#d4a373", hugMove);
+      drawBear(centerX + 60 - hugMove, centerY + bounce, 1, "#b08968", hugMove);
+
+      drawHeart(centerX, centerY - 100 + bounce, 30);
+
+      if (Math.random() < 0.05) {
+        floatingHearts.push(createFloatingHeart());
       }
+
+      floatingHearts.forEach((h, i) => {
+        h.y -= h.speed;
+        drawHeart(h.x, h.y, h.size, "#ff85a2");
+        if (h.y < -20) floatingHearts.splice(i, 1);
+      });
 
       requestAnimationFrame(animate);
     }
 
     animate();
-
-    setInterval(() => {
-      for (let i = 0; i < 5; i++) {
-        particles.push(createParticle(canvas.width/2, canvas.height/2));
-      }
-    }, 200);
   }
 </script>
 
 </body>
 </html>
-
